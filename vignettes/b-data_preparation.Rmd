@@ -1,0 +1,135 @@
+---
+title: "temp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{temp}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+## Packages
+
+```{r setup}
+library(sparrowtelomeres)
+library(readxl)
+library(reshape2)
+```
+
+
+
+## Raw data
+
+The raw data is available via the publisher's website (https://royalsocietypublishing.org/doi/suppl/10.1098/rsbl.2015.0559) in a table in a word document called "rsbl20150559supp1.docx".  This file is saved in the folder /inst/extdata.
+
+Data tables can be extracted directly from Word documents using
+docxtractr::docx_extract_all_tbls()
+
+(This code would set up the file name; however, I didn't follow through this this)
+```{r, eval = F}
+file.name <- "rsbl20150559supp1.docx"
+file.full <- here::here("/inst/exdata",file.)
+```
+
+
+Data was copied and pasted from the Word document into an Excel spreadsheet into a sheet called "orig".
+
+Set up the file name
+```{r, eval = F}
+file.name <- "Meillere_et_al_2015_telomere_data.xlsx"
+file.full <- here::here("inst/extdata",file.name)
+```
+
+Read in the datasheet
+```{r, eval = F}
+dat.orig <- readxl::read_xlsx(file.full,sheet = "orig")
+```
+
+## Clean data
+
+```{r, eval = F}
+head(dat.orig)
+summary(dat.orig)
+summary(factor(dat.orig$sex))
+```
+
+## Set factors
+
+```{r, eval = F}
+dat.orig$nest <- as.factor(dat.orig$nest)
+dat.orig$treatment <- as.factor(dat.orig$treatment)
+dat.orig$sex <- as.factor(dat.orig$sex)
+dat.orig$fledging <- as.factor(dat.orig$fledging)
+```
+
+## Rename object
+
+Give it a useful name
+
+```{r, eval = F}
+telosfull <- dat.orig
+```
+
+
+Save as data .rda object
+```{r, eval = F}
+use_data(telosfull, overwrite = T)
+```
+
+Save as .csv
+
+```{r, eval = F}
+file.full <- here::here("/inst/extdata","telosfull.csv")
+write.csv(telosfull, file.full, row.names = F)
+```
+
+
+## Fledging success data
+
+The authors used a binomial glm using the number fledged per nest for fledging success models.
+
+Note: in the data provided, fledging success appears to be recorded at the brood level, even though in methods they report modeling the propotion of nestling fledged, which implies nestling-level data.
+
+```{r, eval = F}
+#reshape data
+telosfull[,c("nest","fledging")]
+fledgedata <- reshape2::dcast(data = telosfull,
+      formula = nest + treatment ~  fledging)
+
+#rename columns
+names(fledgedata)[3:4] <- c("fledged.no","fledged.yes")
+
+#calculate total number of fledglings in brood
+## see note above about nest-level success
+fledgedata$brood.size <- fledgedata$fledged.no + fledgedata$fledged.yes
+
+# code nest as successful or not
+fledgedata$nest.success <- ifelse(fledgedata$fledged.yes > 0, 1, 0)
+
+#create data object
+use_data(fledgedata, overwrite = T)
+
+#creat .csv
+file.full <- here::here("/inst/extdata","fledgedata.csv")
+write.csv(fledgedata,file.full,row.names = F)
+```
+
+
+## Subset data
+```{r, eval = F}
+
+
+dat.ext  <- readxl::read_xlsx(file.,sheet = "subset.ext2")
+dat.sub  <- readxl::read_xlsx(file.,sheet = "subset.MF")
+
+```
+

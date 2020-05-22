@@ -1,0 +1,205 @@
+---
+title: "Example plot: means with error bars (error plot)"
+author: "Nathan Brouwer"
+date: "January 18, 2019"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = F, warning = F, message = F)
+```
+
+
+
+
+```{r, echo = F}
+library(tufte)
+library(formatR)
+
+library(readxl)
+
+library(ggpubr)
+library(cowplot)
+
+library(lme4)
+
+library(dplyr)
+library(plotrix)
+```
+
+```{r  echo = F}
+file. <- "Meillere_et_al_2015_telomere_data.xlsx"
+
+#load data
+dat.full <- readxl::read_xlsx(file.,sheet = "orig")
+
+# clean up data
+dat.full$cort <- as.numeric(dat.full$cort)
+dat.full$Group <- with(dat.full,
+                       paste(treatment,sex))
+
+dat.full$Group <- gsub("control","Control",dat.full$Group)
+dat.full$Group <- gsub("disturbed","Noise exposure",dat.full$Group)
+
+dat.full$Group <- gsub(" F","\nFemales",dat.full$Group)
+dat.full$Group <- gsub(" M","\nMales",dat.full$Group)
+dat.full$cort.log <- log(dat.full$cort)
+dat.full$telomere.length.log <- log(dat.full$telomere.length)
+
+
+names(dat.full) <- gsub("treatment",
+                        "Treatment",
+                        names(dat.full))
+
+names(dat.full) <- gsub("sex",
+                        "Sex",
+                        names(dat.full))
+```
+
+
+
+```{r  echo = F}
+
+#dat.full$Sex <- ifelse(dat.full$Sex == "F","Female","Male")
+
+# dat.full$Treatment <- factor(dat.full$Treatment, 
+#                    levels = c("control","disturbed",""))
+
+means <- dat.full %>%
+ group_by(Treatment) %>%
+  summarize(mean = mean(telomere.length),
+            SD = sd(telomere.length),
+            SE = std.error(telomere.length))
+
+
+means$CI.top <- means$mean+2*means$SE
+means$CI.bottom <- means$mean-2*means$SE
+
+
+```
+
+
+
+```{r  echo = F}
+ggplot(data = means,
+       aes(y = mean,
+           x = Treatment,
+           color = Treatment,
+           shape = Treatment)) +
+  geom_errorbar(aes(ymin = CI.top,
+                    ymax = CI.bottom),
+                width = 0,
+                size = 2,
+                color = "black") + 
+    geom_point(size = 8) +
+  scale_x_discrete(limits = c("","control","disturbed","")) +
+  theme(legend.position="none") +
+   ggtitle("Error plot: means & error bars\n") +
+   xlab("Predictor: Experimental group\n") +
+   ylab("Response: Telomere length (kb)\n") +
+  
+  #Full CI
+   geom_segment(x = 2.15, 
+                xend = 2.05,
+                y = means[1,"CI.top"][[1]],
+                yend = means[1,"CI.top"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+   geom_segment(x = 2.15, 
+                xend = 2.05,
+                y = means[1,"CI.bottom"][[1]],
+                yend = means[1,"CI.bottom"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+  geom_segment(x = 2.15, 
+                xend = 2.15,
+                y = means[1,"CI.top"][[1]],
+                yend = means[1,"CI.bottom"][[1]],
+               color = "black") +
+  annotate(geom = "text",
+           x = 2.5,
+           y = means[1,"mean"][[1]],
+           label = "Full confidence\ninterval\n(+/- 2*SE)") +
+  # Upper CI
+   geom_segment(x = 1.75, 
+                xend = 1.95,
+                y = means[1,"CI.top"][[1]],
+                yend = means[1,"CI.top"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+  annotate(geom = "text",
+           x = 1.25,
+           y = means[1,"CI.top"][[1]],
+           label = "Top of CI\n(Y = mean+2*SE)")+
+  
+  #Lower CI
+   geom_segment(x = 1.75, 
+                xend = 1.95,
+                y = means[1,"CI.bottom"][[1]],
+                yend = means[1,"CI.bottom"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+  annotate(geom = "text",
+           x = 1.25,
+           y = means[1,"CI.bottom"][[1]],
+           label = "Bottom of CI\n(Y = mean - 2*SE)") +
+  
+  # Mean
+  geom_segment(x = 1.75, 
+                xend = 1.9,
+                y = means[1,"mean"][[1]],
+                yend = means[1,"mean"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc")))  +
+  annotate(geom = "text",
+           x = 1.5,
+           y = means[1,"mean"][[1]],
+           label = "Mean") +
+  #Half CI
+   geom_segment(x = 3.25, 
+                xend = 3.15,
+                y = means[2,"CI.top"][[1]],
+                yend = means[2,"CI.top"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+   geom_segment(x = 3.25, 
+                xend = 3.15,
+                y = means[2,"mean"][[1]],
+                yend = means[2,"mean"][[1]],
+               color = "black",
+               arrow = arrow(length = unit(0.03, "npc"))) +
+  geom_segment(x = 3.25, 
+                xend = 3.25,
+                y = means[2,"CI.top"][[1]],
+                yend = means[2,"mean"][[1]],
+               color = "black") +
+  annotate(geom = "text",
+           x = 3.75,
+           y = 0.98*means[2,"CI.top"][[1]],
+           label = "Upper error bar of\nconfidence interval\n(mean to \nmean + 2*SE)")  +
+  
+  #text
+  annotate(geom = "text",
+           x = 3,
+           y = 1.25,
+           label = "An error bar extends from the
+mean up or down to a certain
+value.
+
+A confidence interval refers to
+the whole span from the top
+of the top bar to the bottom
+of the lower bar.",hjust =0)  +
+  ylim(0.95,1.35) +
+  theme_bw() + theme(legend.position = "none")
+```
+
+An **error bar** represents variation around a mean value or uncertainty we  have in our estimate of the mean.  Variation is represented by the **standard deviation (SD)** and characterizes just variation in the raw data.  Uncertainty in the estimate is represented by the **standard error (SE)** or a **95% confidence interval (95% CI)**.
+
+When we refer to "an error bar" we usually are referring to a single bar extending either above or below the mean.  When we refer to a confidence interval we are referring to both bars.  A confidence interval is the full span from the top of the upper error bar to the bottom of the lower bar.  There is therefore a subtle difference between referring to error bars from standard deviations or standard error and the 95% confidence.
+
+One thing to remember is that the bars shown in an error plot or barplot are completely different than those in a **boxplot**.  Its useful to remember that the full name of a boxplot is a  "box and whisker plot".  The bars extending above the boxes in a boxplot are *not* error bars.  The top of the upper "**whisker**" goes up to the maximum value of the data (except when there are outliers); the bottom of the lower whisker goes down to the minimum value (except when there are outliers).  These whiskers span upper and lower quartiles and are meant to capture aspects of the **distribution** of the data.
+
+Data are from 
+Meillere et al 2015. Traffic noise exposure affects telomere length in nestling house sparrows.  Proceedings of the Royal Society B.  11: 20150559 https://doi.org/10.1098/rsbl.2015.0559

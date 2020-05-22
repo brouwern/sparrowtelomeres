@@ -1,0 +1,209 @@
+---
+editor_options:
+  chunk_output_type: console
+fontsize: 12pt
+output:
+  pdf_document: default
+classoption: landscape
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F, error = F, 
+                      fig.width = 10, 
+                      fig.height = 7)
+```
+
+## Types of plots
+
+
+
+[//]: # (This script makes example of different kinds of plots using the telomere data of Meillere et al 2015.)
+
+
+```{r echo = F}
+# Prep stuff
+## libraries
+library(readxl)
+library(ggpubr)
+library(cowplot)
+library(dplyr)
+library(here)
+library(plotrix)
+
+#here::here()
+
+file. <- "Meillere_et_al_2015_telomere_data.xlsx"
+
+#load data
+dat.full <- readxl::read_xlsx(file., sheet = "orig")
+
+# clean up data
+dat.full$cort <- as.numeric(dat.full$cort)
+dat.full$Group <- with(dat.full,
+                       paste(treatment,sex))
+
+dat.full$Group <- gsub("control","Control",dat.full$Group)
+dat.full$Group <- gsub("disturbed","Noise exposure",dat.full$Group)
+
+dat.full$Group <- gsub(" F","\nFemales",dat.full$Group)
+dat.full$Group <- gsub(" M","\nMales",dat.full$Group)
+dat.full$cort.log <- log(dat.full$cort)
+dat.full$telomere.length.log <- log(dat.full$telomere.length)
+
+
+names(dat.full) <- gsub("treatment",
+                        "Treatment",
+                        names(dat.full))
+
+names(dat.full) <- gsub("sex",
+                        "Sex",
+                        names(dat.full))
+```
+
+```{r echo = F}
+dat.focal.cols <- dat.full[,c("Treatment","Sex","telomere.length","cort")]
+dat.foc.cols.rnd <- dat.focal.cols
+dat.foc.cols.rnd$telomere.length <- dat.foc.cols.rnd$telomere.length %>% round(1)
+dat.foc.cols.rnd <- dat.foc.cols.rnd  %>% arrange(Treatment,telomere.length)
+
+# dat.foc.cols.rnd %>% 
+#   group_by(Treatment) %>% 
+#   summarise(sample.size = n(),
+#             min.telomere = min(telomere.length),
+#             max.telomore = max(telomere.length))
+```
+
+```{r echo = F, eval = F}
+# expand.grid(telomere.bin  = seq(0.7,1.6,0.1),
+#             control = "",
+#             disturbed = "")
+```
+
+
+
+```{r echo = F, eval = F}
+# top of the data frame
+
+dat.head <- dat.focal.cols %>%
+  mutate_if(is.numeric, round, 2) %>%
+  head() 
+
+# knitr::kable(dat.head)
+
+```
+
+
+
+
+
+```{r echo = F}
+# make scatterplot
+scatter. <- ggscatter(data = dat.full,
+          y = "telomere.length",
+          x = "cort",
+          add = "reg.line",
+          #color = white,
+          cor.coef = T,
+          title = "Scatter plot: 2 continous variables",
+          xlab = "Predictor: Blood corticosterone\nconcentration",
+          ylab = "Response: Telomere length\n")
+```
+
+
+```{r echo = F}
+# make bar plot
+bar. <- ggbarplot(data = dat.full,
+          y = "telomere.length",
+          x = "Treatment",
+          fill = "Treatment",
+          palette = c("white","black"),
+          add = "mean_ci",
+          title = "Bar plot: means & error bars",
+          xlab= "Predictor: Experimental group\n",
+          ylab= "Response: Telomere length\n")
+```
+
+
+```{r echo = F}
+#make errror plot
+error. <-
+  ggerrorplot(data = dat.full,
+          y = "telomere.length",
+          x = "Group",
+          desc_stat = "mean_ci",
+          size =2,
+          color = "Treatment"  , 
+          title = "Error plot: means & error bars",
+          xlab= "Predictor: Experimental group\n",
+          ylab= "Response: Telomere length\n") 
+```
+
+
+
+```{r echo = F }
+# make histogram
+hist. <- gghistogram(data = dat.full,
+          x = "telomere.length",
+          desc_stat = "mean_ci",
+          title = "Histogram: Distribution of 1 variable",
+          #fill = "sex",
+          xlab  = "X-axis: Variable of interest\nTelomere length",
+          ylab = "Y-axis: Number of observations\n")
+```
+
+
+
+
+```{r echo = F}
+# make boxplot
+box. <- ggboxplot(data = dat.full,
+          y = "telomere.length",
+          x = "Treatment",
+          fill = "Treatment",
+          title = "Box plot: Distribution of 2 groups",
+          xlab= "Predictor: Experimental group",
+          ylab= "Response: Telomere length")
+```
+
+
+
+```{r, echo = F}
+# plot all 4 plots in grid
+plot_grid(hist.,    box.,
+          scatter.,error.)
+```
+
+
+```{r,echo = F, eval = F}
+#Blank histogram - ? 
+
+gghistogram(data = dat.full,
+          x = "telomere.length",
+          desc_stat = "mean_ci",
+          title = "Histogram",
+          #fill = "sex",
+          xlab  = "X-axis: Variable of interest\nTelomere length",
+          ylab = "Y-axis: Number of observations\n",
+          color = "white",
+          xlim = c(0.6,1.8)) + 
+  geom_vline(xintercept = seq(0.65,1.85,0.1)) +
+  geom_hline(yintercept = seq(0,10,1)) +
+  scale_x_continuous(breaks =  seq(0.6,1.8,0.1))
+```
+
+
+
+
+
+```{r echo = F, eval = F}
+#empty plot
+blank. <- ggscatter(data = dat.full,
+          y = "telomere.length",
+          x = "cort",
+          #add = "reg.line",
+          color = "white",
+          #cor.coef = T,
+          title = "Generic plot layout",
+          xlab = "X-axis: Predictor variable\n(aka independent variable)",
+          ylab = "Y-axis: Response variable\n(aka dependent variable)")
+```

@@ -1,0 +1,250 @@
+---
+title: "Traffic noise exposure affects telomere length in nestling house sparrows"
+output:
+  tufte::tufte_handout: default
+  tufte::tufte_html: default
+editor_options: 
+  chunk_output_type: console
+---
+
+
+<!-- ## (This is and ABRIDGED and ANNOTATED vs of Meillere et al.  It has been edited to improve  -->
+<!-- ## (readability for undergraduate students.  It has also been annotated with key terms) -->
+<!-- # (Results were simplified to the output of a single t-test)  -->
+<!-- -->
+
+```{r setup, include=FALSE, echo = F}
+knitr::opts_chunk$set(echo = FALSE)
+
+#load packages
+library(tufte)
+library(formatR)
+
+
+library(ggpubr)
+library(cowplot)
+
+library(lme4)
+
+# load data
+
+
+```
+
+Alizee Meillere, François Brischoux, Cecile Ribout & Frederic Angelier
+| 01 September 2015
+| https://doi.org/10.1098/rsbl.2015.0559
+
+## Abstract
+
+<!-- ## (Notes: abstract was reformatted to numbered format) -->
+
+1. Anthropogenic noise[^1] occurs everywhere and there is increasing evidence that it can negatively impact wildlife. Environmental conditions experienced early in life can have dramatic lifelong consequences for **`fitness`**[^2]. The effects of noise on adults have been widely studied, but little is known about its effects on young organisms. 
+
+[^1]: Noise created by humans.
+[^2]: **FITNESS**: Ability to survive, reproduce & pass on genes.
+
+```{r fig.margin = TRUE, fig.width=0.75}
+knitr::include_graphics("218px-Western_Bluebird_leaving_nest_box.jpg")
+```
+
+2. We **experimentally manipulated**[^experimentally] the sound environment of house sparrows (*Passer domesticus*) breeding in nest boxes[^nestbox]. We quantified nestlings' **`telomere length`** (the protective ends of chromosomes) becaue this appears to be a promising **predictor of longevity**. 
+
+[^nestbox]: A sciency way of saying bird house.
+
+3. While there was no impact on survival, nestlings[^nestlings] reared \hfill\break  
+**`experimentally`**[^experimentally] under traffic noise exposure exhibited reduced telomere lengths compared with unexposed **`controls`**[^controls].   
+
+[^experimentally]: **`EXPERIMENTALLY`**: exposed to artificial conditions imposed intentionally by researchers
+[^nestlings]: baby birds still living in their nest and being fed by their parents.
+[^controls]: **`CONTROL`**: the part of the experiment left unchanged by researchers
+
+4. While the **`mechanisms`**[^mechanisms] remain to be determined, our results provide the first **`experimental evidence`**[^evidence] that noise can affect a wild **vertebrate's**[^6] early-life telomere length. Noise exposure may thus be costly for developing organisms.
+
+[^mechanisms]: **`MECHANISMS`**:  specific biological processes involved; in this case, what factors at the physiological, molecular & cellular level reduce telomere length.
+[^evidence]: **`EXPERIMENTAL EVIDENCE`**: evidence derived from an experiment. Contrast with an **`OBSERVATIONAL STUDY`** where all organisms occurred under natural conditions.
+
+## Introduction
+
+In many **`vertebrates`**[^verts] it is well-established that **`environmental conditions`**[^env] experienced in early life can impact **`fitness`**, particularly due to influences on development [1].There has been growing interest in understanding the **`mechanisms`** underlying the long-term consequences of developmental conditions on **`fitness`** [1]. 
+
+[^verts]: **`VERTEBRATES`**: organism with a spine (eg birds, amphibians, mammals)
+
+**Telomere length**[^8] has been suggested as a tool to investigate this question because it appears to be a predictor of survival in **vertebrates** [2-4]. Made of repetitive **non-coding sequences**[^9] of DNA, telomeres protect chromosomes during **`cell division`** [2]. Telomeres shorten throughout the life of an organism, and the rate of shortening can be accelerated by **`environmental stressors`** [5,6]. Previous studies have shown that most telomere loss occurs early in life (e.g. [7]). **`Environmental conditions`** experienced during development are thus likely to be an important **`driver`** of telomere shortening [8,9], and consequently, might entail important costs (e.g. reduced longevity [3]).
+
+[^8]: **`TELOMERE LENGTH`**: Length of the repetative non-coding sequence of bases at the ends of all chromosomes.
+[^9]: **`NON-CODING SEQUENCES`**: DNA that is not translated and therefore does not produce proteins.
+
+Most research addressing the impact of environmental conditions on animal development has considered changes in of the natural conditions (e.g. nutrition, sibling competition [1, 8-10]). However, in our **`urbanizing`**[^urban] world, organisms are exposed to **`novel environmental challenges`**[^novel] [11], and in particular, to large increases in the level of background noise. **Anthropogenic noise** is nearly omnipresent and can have major impacts on wildlife [12], making **noise pollution** a research priority. 
+
+[^env]: **ENVIRONMENTAL CONDITIONS**: conditions outside an organism; eg UV light intensity, temperature, humidity, rainfall.
+[^urban]: **Urbanizing**: Becoming more developed with human structures or city-like.
+[^novel]: **Novel environmental challenges**: New conditions that did not occur during the evolution of an organism.
+
+The effects of noise pollution on adult animals have been well studied, mainly in the context of **`acoustic communication`** (reviewed in [12]). Surprisingly, there has been little consideration of the effects of noise on **`developing organisms`**[^devorg] (but see [13]). Anthropogenic noise could alter development through **`direct impacts`**[^di] on the organism (e.g. noise-induced developmental stress [13]), or **`indirect impacts`**[^ii] through altered **parental behaviour**[^pb] [14,15]. Organisms that develop in a noisy environment are therefore likely to be of poor **quality** [14]. However, the potential influence of early-life noise exposure on development has yet to be explored in wild populations.
+
+[^devorg]: An organism that is not yet sexually mature; usually refers to organisms prior to birth or shortly thereafter.
+[^di]: **DIRECT IMPACTS**: factors that physically interact with an organism, such as the quality of the food they ingest.
+[^ii]: **INDIRECT IMPACTSS**: factors that pass through an intermediary.  Parents have a direct impact on their offspring, while the quality of the food parents eat can have an indirect impact on their offspring if it reduces the parents ability to care for their offspring.
+[^pb]: **Parental behavior**: how parents act towards their offspring, including feeding, communication, protection from predators, incubation.
+
+We investigated the impact of noise pollution on the telomeres of developing birds by **experimentally manipulating** the sound environment (traffic noise vs. **control**) of house sparrows (*Passer domesticus*) breeding in nest boxes.  We predicted that nestlings reared under noise exposure should have shorter telomeres and have a lower **probablity** relative to controls of surviving long enough to leave the nest (**fledging**).
+
+
+## Materials & methods
+
+The experiment was conducted on a **`population`**[^population] of sparrows breeding in nest boxes at the Centre d'Etudes Biologiques de Chize, France. Boxes were exposed to either a recording of traffic noise ('disturbed treatment', n = 21 nest boxes) or the rural background noise of the study site ('control treatment', n = 46 boxes). Treatment began several weeks before egg-laying and ended at the end of chick-rearing.  Traffic noise was played for 6 h a day, 7 days a week. Speakers were hidden 3-4 m from the nest boxes and volume was adjusted to produce noise levels similar to urban environments [15].  
+
+[^population]: **POPULATION**: Relatively distinct group of potentially intergreeding individuals of the same spcies.
+
+```{r fig.margin = TRUE, fig.width=0.75, fig.cap="House sparrow"}
+knitr::include_graphics("216px-Passer_domesticus_male_(15).jpg")
+```
+
+
+When nestlings were 9 days old, we collected blood samples (50-100 uL). We checked the nest boxes 17 days after hatching to record the final nest status  The nest was considered successful if at least one nestling survived and exited the nest.  **`Genomic DNA`**[^gNDA] was extracted from frozen **red blood cells**. The sex of nestlings was determined by **molecular sexing**. Telomeres were measured using **`PCR (Polymerase Chain Reaction)`**[^PCR].
+
+[^gNDA]: **`GENOMIC DNA`**: The main genomic DNA from the nucleus.  This excluded DNA from mitochondria.
+[^PCR]: **`PCR`**: A tool for copying, sequencing, & quantifying DNA.
+
+We compared telomere lengths between treatments using **`t-tests`**[^ttest].  We compared survival (fledging success) using a **binomial-test**[^ttest].  Nestlings within the same nest are genetically similar and share environmental conditions beyond the experimental conditions.  Nestlings within the same nest are therefore not **independent** from each other.  Because the experimental treatment (noise) was applied at the level of the nest we randomly chose 1 male and 1 female from each nest for our analysis.  This avoids the problem of erroneously increasing our sample size due to **`pseudoreplicaiton`**[^prep].  
+
+[^ttest]: **`T- & BINOMIAL TEST`**: Statistical methods for determining how much evidence there is that 2 groups are different.  T-tests are used with numeric data (telomere length, bird mass) & binomial tests are used for either/or events (eg alive vs. dead, fledged vs. didn't fledge).
+[^prep]: **`PSEUDOREPLICATION`**: Statistical tests assume all organisms are biologically & spatially separate.  Young birds sharing the same nest are not independent & aren't unique data points.
+
+## Results
+
+```{r, echo = F}
+library(sparrowtelomeres)
+t.out <- t.test(telomere.length ~ treatment, 
+       data = dat.ext)
+
+t.t <- round(t.out$statistic,2)
+t.p <- round(t.out$p.value,3)
+t.df <- round(t.out$parameter,2)
+
+```
+
+```{r, echo = F, warnings = F}
+#dat.ext$fledging <- factor(dat.ext$fledging)
+#xtab. <- with(dat.ext,table(treatment,fledging))
+#chisq.test(x = xtab.)
+
+#binom.test(c(5,2))
+#binom.test(c(3,6))
+
+df <- data.frame(Treatment = c("Control\n(Normal sounds)", 
+                      "Sound disturbance" ),
+        
+                Fledging = c(0.71,0.33)*100,
+        CI.low = c(0.29,0.075)*100,
+        CI.high = c(0.96,0.70)*100)
+
+# m1 <- glm(fledging~treatment, data = dat.ext, family = "binomial")
+# m0 <- glm(fledging~1, data = dat.ext, family = "binomial")
+# anova(m1,m0,test = "Chisq")
+```
+
+
+The sound treatment reduced nestlings' telomere length by ~20% (Fig. 1; Welch's 2-sample t-test: P = `r t.p`, t = `r t.t`, df = `r t.df`). 
+
+```{r, echo = F}
+
+dat.ext$telomere.length.log <- log(dat.ext$telomere.length)
+dat.ext$Treatment <- dat.ext$treatment
+dat.ext$Treatment <- gsub("control","Control\n(Normal\nsounds)",dat.ext$Treatment)
+dat.ext$Treatment <- gsub("disturbed","Sound\ndisturbance",dat.ext$Treatment)
+dat.ext$Treatment <- factor(dat.ext$Treatment)
+gg <- ggerrorplot(data = dat.ext,
+            y = "telomere.length",
+            x = "Treatment",
+            color = "Treatment",
+            desc_stat = "mean_ci",
+            size = 1.2,
+            ylim = c(0.8, 1.7),
+            legend = "none",
+            xlab = "Experimental treatment",
+            ylab = "Telomere length (T/S ratio)") +
+  geom_jitter(size = 3,
+              width = 0.25) 
+
+gg1 <- gg + stat_compare_means(method = "t.test",
+                        comparisons = list(c("Control\n(Normal sounds)", "Sound disturbance" )) )
+
+gg1 + theme_bw()
+  
+```
+**Figure 1:** Telomere length in 7 Control nests and 9 nests disturbed with anthopogenic noise.  **`Error bars`**[^EB] are 95% **`confidence intervals.`**[^CI]
+
+[^EB]: **`ERROR BARS`**: A line or bar that extends above or below an estimated mean value to indicate the standard deviation (SD), standard error (SE), or part of a confidence interval (CI).
+
+[^CI]: **`CONFIDENCE INTERVALS (CI)`**: ERROR BARS extending above and below an estimate of a mean.  Error bars are ~2*SE.  The precise mathematical definition of CIs is subtle but they can be approximately interpreted as a range of plausible value within which the true mean is likely contained.  
+
+Fledging success was much lower in sound disturbance treatment (Fig 2; 71% vs. 33%) but this difference was not **`statistically significant`** (binomial test: P = 0.13).
+
+```{r}
+gg2 <- ggplot(data = df,
+       aes(y = Fledging,
+           x = Treatment,
+             color = Treatment,
+             sahpe = Treatment)) +
+  geom_point(size =3) +
+  ylab("Fledging success (%)") +
+  geom_errorbar(aes(ymin = CI.low,
+                    ymax = CI.high),
+                width = 0) + theme(legend.position="none")
+gg2 + theme_bw()
+```
+
+**Figure 2:** Fledging success in 7 Control nests and 9 nests disturbed with anthopogenic noise.  Error bars are 95% confidence intervals.
+
+
+
+
+
+## Discussion
+
+Few studies have investigated the effects of noise pollution on nestlings.  Noise has been shown to have subtle effects on **physiology** and **behaviour** (**stress physiology** [13]; begging calls [17,18]) but without obvious effects on growth, **condition** or fledging success. We similarly found a strong effect of noise on nestling telomere length, but no effect on fledging success. Recent studies have shown that early-life telomere length can be a  predictor of **life expectancy** and **`fitness`** [2-4]. Reduced telomere length of disturbed nestlings may therefore suggest a detrimental effect of noisy environments on developing birds that may carry over later in life (i.e. reduced **`fitness`**). Future investigations should assess the long-term consequences of reduced telomere length.
+
+The **`proximate causes`**[^prox] of the effect of noise on telomere length remain to be determined. Genetic (e.g. inheritance of short telomeres by parents of poor quality), parental (e.g. reduced parental investment) and/or environmental (e.g. noise-induced stress) factors could all be involved [2,4]. The similar occupancy rates (disturbed: 52.4%, control: 54.4%) and high availability of unoccupied control nest boxes (21 nest boxes) suggest that low-quality individuals were not excluded from undisturbed nest boxes by high-quality sparrows [15]. Moreover, there were no differences in clutch size or body size and condition of parents as proxies for individual quality between sound treatments. Overall, parent quality is thus unlikely to have differed across the 2 sound treatments. Shorter telomeres are also unlikely to result from altered parental behaviour and nutritional restriction because of similar growth and fledging success between disturbed and control nestlings [14]. 
+
+[^prox]: **`PROXIMATE CAUSES`**: Underlying reasons; here, the physiological, cellular & molecular mechanisms behind telomere shortening.
+
+Accelerated telomere loss in disturbed nestlings could result from oxidative stress, via noise-induced physiological stress (e.g. elevated stress hormones [4]). Indeed, recent studies have suggested that exposure to stress can accelerate telomere loss [4,10,19,20]. <!-- Here, we did not detect any effect of noise exposure on baseline corticosterone levels, suggesting that reduced telomere length did not result from an increased secretion of stress hormones. Importantly, we measured immediate corticosterone levels (when the chicks were 9-days old). It is plausible that an integrative measure of corticosterone levels (for instance, in the feathers) may provide a more accurate assessment of the stress levels experienced by the chicks throughout their development [21]. In addition, other factors could have accounted for the difference in telomere length between experimental chicks and controls. For instance, -->  Noise exposure may have also increased the activity level of nestlings, or disrupted their normal sleep-wake cycle. Overall, these modifications may have increased <!-- oxidative stress and --> **DNA damage**, potentially explaining our results [4,20]. Future **mechanistic studies** should more deeply investigate the proximate mechanisms that mediate the effect of noise on telomere length in nestlings. Since early exposure to <!-- corticosterone and -->  oxidative stress can affect telomere dynamics [10,20], specific attention should be paid to oxidative stress and integrative measures of corticosterone levels.
+
+## Conclusion 
+
+Our experiment is the demonstration that anthropogenic noise can affect nestlings' telomere length <!-- without any obvious **morphological effects** -->. This finding raises questions regarding the impact of anthropogenic noise on life-history trajectories in wild populations. Furthermore, our results highlight the importance of investigating the impact of human-induced changes on cryptic aspects of <!-- phenotypic --> development to fully understand the influence of anthropogenic environments on wildlife.
+
+## References
+
+(References have been removed).
+
+<!--  -->
+<!--## Ethics-->
+<!--All applicable institutional and/or national guidelines for the care and use of animals were followed and all experimental procedures were approved by the ‘Comité d'Ethique en Expérimentation Animale Poitou-Charentes’, France (permit no.: CE2013-3).-->
+
+<!--## Data accessibility-->
+<!--Raw data are provided in the electronic supplementary material.-->
+
+<!--## Authors' contributions-->
+<!--## A.M., F.B. and F.A. conceived and designed the field experiment. A.M. collected and analysed the data. F.A. and C.R. performed telomere assays. A.M., F.B. and F.A. drafted the manuscript with intellectual input from C.R. All authors contributed to and approved the final version of the manuscript.-->
+
+<!--## Competing interests-->
+<!--The authors have no competing interests.-->
+
+<!--## Funding-->
+<!--This work was supported by the Fyssen Foundation and by the CNRS. A.M. was supported by the ‘Région Poitou-Charentes’ and the ‘Conseil General des Deux-Sevres’.-->
+
+<!--## Acknowledgements-->
+<!--We thank G. Gouchet, S. Ruault, C. Parenteau, C. Trouve, L. Sourisseau, J.K. Grace for their kind assistance. We also thank three anonymous reviewers for constructive comments.
+-->
+<!--Text comment-->
+
+
+<!--## Footnotes-->
+
+## Copyright
+
+*Copyright 2015 The Author(s) Published by the Royal Society. All rights reserved.*
+

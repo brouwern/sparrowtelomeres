@@ -1,0 +1,46 @@
+---
+title: "Untitled"
+author: "Nathan Brouwer"
+date: "December 28, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!--Text comment-->
+<!--Text comment-->
+<!--Text comment-->
+<!--Text comment-->
+
+[^4b]: telomere length has been correlated with health & survival in many organism, including humans.
+[^4b]: telomere length has been correlated with health & survival in many organism, including humans.
+
+
+WHat is a telomere?
+What do you think traffic noise does to organisms, especially young ones?
+What do you think the "Effect" is?
+
+To save space I left several things out of the experimental protocol.  For a similar reason, many journals now move some details and less interesting results about to **online appendices**, often called **supplemental information**.
+
+Re-read the Materials & Methods portion of the paper.  Identify at least 2 things you'd think you'd like to know more about in order to understand the study better and to be able to repeat the study yourself (stated another way, what are two things you think you would've included if you'd been doing a lab write up about this paper).
+
+You can see the full paper at...
+
+Do you think its a good idea to leave this info out?
+
+I also left out information on body size, etc etc.  does knowing that these were NS chnage your opinion about the results
+
+
+ 
+
+
+ 
+
+
+
+
+
+
+

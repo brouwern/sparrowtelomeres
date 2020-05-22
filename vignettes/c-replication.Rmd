@@ -1,0 +1,508 @@
+---
+title: "temp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{temp}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Packages
+
+```{r setup}
+library(sparrowtelomeres)
+library(lme4)
+library(pbkrtest)
+library(lmerTest)
+library(blme)
+```
+
+
+## Data
+Load data from .csv
+```{r}
+file.full <- here::here("/inst/extdata","telosfull.csv")
+telosfull <- read.csv(file.full)
+```
+
+```{r}
+file.full <- here::here("/inst/extdata","fledgedata.csv")
+fledgedata <- read.csv(file.full)
+```
+
+
+
+## Statistical methods-main text
+
+The original methods state that:
+
+>"Statistical analyses were performed in R. v. 3.1.0. We used linear mixed models (LMMs) with ‘body size’, ‘body condition’, log-transformed ‘baseline corticosterone’ or log-transformed ‘telomere length’ as our dependent variable, ‘sound treatment’ (disturbed versus control), ‘sex’, ‘brood size’ and two-way interactions as independent variables/factors, and ‘nest identity’ as a random factor.
+
+Additionally, or some models:
+>"For telomere and corticosterone analyses, we also included ‘body condition’ as an independent variable. 
+
+Fledging success
+>"Fledging success was analysed on a per brood basis. We used generalized linear models (GLMs, binomial error distribution, logit link function) with ‘fledging success’ (proportion of nestlings that fledged) as our dependent variable, and ‘sound treatment’, brood size and their interaction as independent variables/factors."
+
+Note: "proportion of nestlings that fledged" doesn't make sense if "Fledging success was analysed on a per brood basis."  Each brood is either 0 (no nestlings fledged) or 1 (all nestlings fledge).  Based on re-analysis of the data they appear to have using a logistic GLM using brood-level 0/1 data with no reference to the proportion of fledgling which were successuful
+
+
+
+(d)	Statistical analysis - supplemental
+All statistical analyses were performed in R.3.1.0 [12]. We analysed “body size”, “body condition”, baseline corticosterone levels, and “telomere length” data using linear mixed models (LMMs, normal error distribution, identity link function). We used “sound treatment” (disturbed vs. control), “sex” (male vs. female) and “brood size” as independent variables/factors, and nest identity as a random factor to control for the non-independence of siblings. Each full model also included all 2-way interactions between “sound treatment” and other independent variables. For telomere and corticosterone analyses, we also included “body condition” as an independent variable because condition could possibly affect both telomere length and baseline corticosterone level (the results were similar when using body size or body mass in the model). Telomere lengths and corticosterone levels were log-transformed to ensure the normality of model residuals, but we present non-transformed values in Figure 1 to facilitate interpretation. LMMs were fitted using restricted maximum likelihood (REML) estimation. Finally, because all 9-days old nestlings of a given nest were either all successful at fledging or all failed, we could not analyse fledging success using mixed models with nest identity as random factor. Thus, we analysed the data on fledging success on a per brood basis (proportion of nestlings that fledged; binary response variable 0/1), using generalized linear models (GLMs, binomial error distribution, logit link function) with “sound treatment”, “brood size” and their interaction as independent variables/factors. 
+
+
+
+### Response variable
+
+* body size = size 
+* body condition = condition
+* baseline corticosterone = cort (logged)
+* telomere length = telomere.length (logged)
+* brood size = brood.size
+
+Note: not specified if log transformation was log base 10 or natural log.
+
+### Predictors
+
+* sound treatment = treatment
+* sex = sex
+* brood size = brood.size
+
+
+### Random
+
+* nest identity = nest
+
+
+## Models
+
+### Basic model structures
+
+```{r}
+formula(~sex)
+sex
+treatment
+brood.size
+sex + treatment
+sex + treatment + sex*treatment
+sex + brood.size
+sex + bood.size + sex*brood.size
+sex*treatment*brood.size
+treatment + brood.size
+treatment + treatment*brood.size
+
+```
+
+
+### Model 1: body size (size)
+
+
+```{r}
+m1 <- lme4::lmer(size ~ 
+             sex*treatment*brood.size + 
+             condition + (1|nest), 
+             data = telosfull)
+```
+
+
+
+
+```{r eval = F}
+m6 <- lme4::lmer(log(telomere.length) ~ sex*treatment +
+             brood.size + 
+             condition + (1|nest), data = telosfull)
+
+#reported
+m5 <- lmer(log(telomere.length) ~ sex + 
+             treatment +
+             brood.size + 
+             condition + (1|nest), data = telosfull)
+
+```
+
+
+
+## Results reported in  main text (rrmt.)
+
+TODO: check effect sizes, assumptions, random effects, residuals, other models; their results probably differ from mind b/c they are reporting p values from full models using Type III SS (?)
+
+as noted in table lengend "Effect of noise exposure on nestlings' (a) body size, (b) body condition, (c) baseline corticosterone level (log-transformed) and (d) telomere length (log-transformed). Fitted models include sound treatment, sex, brood size and body condition (for (c,d) only), with nest as a random factor. All two-ways interactions were non-significant (p > 0.221) and were removed from the models. Parameter estimates ± s.e. are reported and significant variables are shown in italic."
+
+So it appears like they report results from a partially reduced model
+
+
+>"Noise exposure did not affect nestlings' growth, condition and fledging success: disturbed nestlings had similar body size (LMM: sound treatment effect: F1,14 = 0.13, p = 0.720; figure 1a and table 1a), body condition (LMM: F1,14 = 1.08, p = 0.318; figure 1b and table 1b) and fledging success (GLM: parameter estimates [logits]—disturbed versus control: −2.01 ± 1.29,chi2 = 2.42, p = 0.120) as controls."
+
+
+Note: this statement is not technically correct: "Noise exposure did not affect nestlings' growth, condition and fledging success".
+
+It should be "we found or evidence of an effect" or "there was no statistically significant effect."  As written it assumes that a non-significant p-values indicates that the null hypothesis is true.
+
+
+### Nesting size
+
+Reported:
+"sound treatment effect: F1,14 = 0.13, p = 0.720"
+
+Satterthwaite:
+F1,14.288 = 0.1698,  p = 0.6864
+
+
+
+```{r}
+rrmt_size.trt <- lmer(size ~ treatment + (1|nest), data = telosfull)
+rrmt_size.null <- lmer(size ~ 1 + (1|nest), data = telosfull)
+
+## Type II ss
+anova(rrmt_size.trt, rrmt_size.null)
+
+## Satterthwaite & Kenward-Roger
+# using lmerTest
+anova(rrmt_size.trt,type = "III",ddf = "Satterthwaite")
+anova(rrmt_size.trt,type = "III",ddf = "Kenward-Roger")
+```
+
+### Body condition
+
+"body condition (LMM: F1,14 = 1.08, p = 0.318; figure 1b and table 1b) "
+
+Satterthwaite:
+F1,13.161 = 1.1769,  p = 0.2975
+
+```{r}
+rrmt_con.trt <- lmer(condition ~ treatment + (1|nest), data = telosfull)
+rrmt_con.null <- lmer(condition ~ 1 + (1|nest), data = telosfull)
+
+## Type II ss
+anova(rrmt_con.trt, rrmt_con.null)
+
+## Satterthwaite & Kenward-Roger
+# using lmerTest
+anova(rrmt_con.trt,type = "III",ddf = "Satterthwaite")
+anova(rrmt_con.trt,type = "III",ddf = "Kenward-Roger")
+```
+
+
+
+### Fledging success
+
+fledging success (GLM: parameter estimates [logits]—disturbed versus control: −2.01 +/- 1.29,chi2 = 2.42, p = 0.120)
+
+#### Reported effect size
+Authors report a parameter estimate of GLM: parameter estimates [logits]—disturbed versus control: -2.01 +/- 1.29
+ 
+```{r}
+fledgedata$fledged.yes/fledgedata$brood.size
+```
+
+#### Binomial GLM - brood level
+
+In data provided nest success was recorded at the brood level, so this is the appropriate model given the data.  Resuls are qualitatively similar to originaly data.
+
+beta: -1.6094 , SE = 1.0954 
+Deviance: 2.3477
+p = 0.1255
+
+The authors don't make much of this result, though is marginally significant AND there's a HUGE reduction in fledging success
+
+```{r}
+fledge.brood.trt <- glm(nest.success ~ treatment, 
+            data = fledgedata,
+            family=binomial)
+fledge.brood.null <- glm(nest.success ~ 1, 
+            data = fledgedata,
+            family=binomial)
+
+fledge.brood.mean <- glm(nest.success ~ -1 + treatment, 
+            data = fledgedata,
+            family=binomial)
+
+# raw percentages of successes
+coef(fledge.brood.mean)
+arm::invlogit(0.9163)
+arm::invlogit(-0.6931)
+
+coef(fledge.brood.trt)
+arm::invlogit(0.9163+-1.6094)
+
+summary(fledge.brood.trt)
+
+
+# these all give equivalent results
+anova(fledge.brood.trt,test = "Chisq")
+anova(fledge.brood.trt,fledge.brood.null,test = "Chisq")
+anova(fledge.brood.trt,fledge.brood.null,test = "LRT")
+```
+
+
+
+#### Binomial GLM (as reported)
+
+Author's reported using a binomial GLM instead of GLMM with nest as random effect
+
+Thought his is implied in their methods, this does not appear to be what they did.  It is also not an appropriate approach given the data provided.
+
+Beta = -0.2876821, SE = 0.6667
+Deviance: -0.18653
+p = 0.6658
+
+
+In R this can be done 2 ways
+
+1. Using the proportion of successes (e.g. fledged) as the response variable and the sample size as the weight.
+2. Using a 2 values as a response: number of successes and number of failures (not fledged).  This is done with cbind().
+
+
+
+```{r}
+# glm 1: proportion, with weight
+#From R help file: "For a binomial GLM prior weights are used to give the number of trials when the #response is the proportion of successes:"
+rrmt_fledge.trt <- glm(fledged.yes/brood.size ~ treatment, 
+            weight = brood.size,
+            data = fledgedata,
+            family=binomial)
+
+rrmt_fledge.null <- glm(fledged.yes/brood.size ~ 1, 
+            weight = brood.size,
+            data = fledgedata,
+            family=binomial)
+
+# glm 2: 2-value resonse, with cbind()
+#From R help file: "If a binomial glm model was specified by giving a two-column response..."
+summary(glm(cbind(fledged.yes,fledged.no) ~ treatment, 
+            data = fledgedata,
+            family=binomial))
+
+
+coef(rrmt_fledge.trt)["treatmentdisturbed"]
+
+anova(rrmt_fledge.trt, rrmt_fledge.null,test = "LRT")
+
+```
+
+
+
+#### Logit GLMM
+
+If they had done an analysis with proption fledged a GLMM would have been an appropriate choice.  However, they appear to have analyzed brood-level nest success.  The model below is given just for reference.  Normally this should give similar results to a glm with counts of successus, but the results are actually different.  I suspect this is because this is using individual-level data, but each brood is either successful or not and that this is mucking with the random effects.  The variance of the random effect on nest is huge.  Also, running a means models gives very odd results: 99% of control nests are calcualted as successful.  Perhaps this is some sort of complete-separtation issue within the random effect. 
+
+
+```{r}
+rrmt_fledge.trt  <- lme4::glmer(fledging ~ treatment + (1|nest), 
+                                data = telosfull, 
+                                family = binomial)
+rrmt_fledge.null <- lme4::glmer(fledging ~ 1 + (1|nest), 
+                                data = telosfull, 
+                                family = binomial)
+
+rrmt_fledge.means  <- lme4::glmer(fledging ~ -1 + treatment + (1|nest), 
+                                data = telosfull, 
+                                family = binomial)
+## Type II ss
+anova(rrmt_fledge.trt, rrmt_fledge.null)
+
+
+```
+
+
+
+
+## Cort results report in main text (rrmt)
+
+
+>"baseline corticosterone levels did not differ between disturbed and control nestlings (LMM: F1,13 = 0.12, p = 0.740; figure 1c and table 1c)."
+
+Again, they assume that a large p-value means the null is true.
+
+
+NOTE: this throws a warning "boundary (singular) fit".  The nest random effect variance is 0.
+```{r}
+rrmt_cort.trt <- lmer(log(cort) ~ treatment + (1|nest), 
+                                data = na.omit(telosfull),
+                      REML = T)
+rrmt_cort.null <- lmer(log(cort) ~ 1 + (1|nest), 
+                                data = na.omit(telosfull))
+anova(rrmt_cort.trt,rrmt_cort.null)
+
+anova(rrmt_cort.trt,type = "III",ddf = "Kenward-Roger")
+
+hist(resid(rrmt_cort.trt))
+
+```
+
+
+The model be fit using blme::blmer.  Results are very  similar to the original model.
+```{r}
+blmer_cort.trt <- blmer(log(cort) ~ treatment + (1|nest), 
+                      data = na.omit(telosfull))
+blmer_cort.null <- blmer(log(cort) ~ 1 + (1|nest), 
+                                data = na.omit(telosfull))
+
+anova(blmer_cort.trt,blmer_cort.null)
+
+hist(resid(blmer_cort.trt))
+hist(ranef(blmer_cort.trt)$nest[,"(Intercept)"])
+```
+
+
+TODO: what about the random effects are wonky?
+
+
+
+## Telomere results reported in main text (rrmt)
+
+>"However, the sound treatment affected nestlings' telomere length (LMM: F1,13 = 9.77, p = 0.008; figure 1d and table 1d), with nestlings reared under chronic noise exposure having significantly shorter telomeres than controls. There were no significant effects of sex, body condition or brood size on telomere length (all p > 0.394; table 1d)."
+
+  
+  F1,13 = 9.77, p = 0.008
+intercept =      0.23
+sound trt =     -0.15  9.77   0.008**
+sex =            0.03  0.36	 0.555
+brood size =    -0.01  0.27	 0.607
+body conditio = -0.02  0.76  0.394
+ 
+```{r}
+rrmt_telo.trt <- lmer(log(telomere.length) ~ treatment + (1|nest), 
+                                data = na.omit(telosfull),
+                      REML = T)
+rrmt_teloe.null <- lmer(log(telomere.length) ~ 1 + (1|nest), 
+                                data = na.omit(telosfull))
+anova(rrmt_telo.trt, rrmt_teloe.null)
+
+anova(rrmt_telo.trt,type = "III", ddf = "Kenward-Roger")
+
+rrmt_telo.reported <- lmer(log(telomere.length) ~ treatment + 
+                             sex + 
+                             brood.size + 
+                             condition + 
+                             (1|nest), 
+                            data = na.omit(telosfull),
+                            REML = T)
+
+rrmt_telo.reported.drop1 <- blmer(log(telomere.length) ~ 
+                             #treatment + 
+                             sex + 
+                             brood.size + 
+                             condition + (1|nest), 
+                             data = na.omit(telosfull),
+                             REML = T)
+
+anova(rrmt_telo.reported, rrmt_telo.reported.drop1)
+
+anova(rrmt_telo.reported)
+anova(rrmt_telo.reported, type = "III", ddf = "Kenward-Roger")
+anova(rrmt_telo.reported, type = "III", ddf = "Satterthwaite") #works for REML and ML
+anova(rrmt_telo.reported, type = "II", ddf = "Kenward-Roger")
+anova(rrmt_telo.reported, type = "I", ddf = "Kenward-Roger")
+
+# see also pbkrtest::KRmodcomp
+#          afex::mixed 
+
+hist(resid(rrmt_cort.trt))
+
+```
+
+
+```{r}
+blmer_telo.reported <- blmer(log(telomere.length) ~ 
+                             treatment + 
+                             sex + 
+                             brood.size + 
+                             condition + (1|nest), 
+                             data = telosfull,
+                             REML = T)
+
+blmer_telo.reported.drop1 <- blmer(log(telomere.length) ~ 
+                             #treatment + 
+                             sex + 
+                             brood.size + 
+                             condition + (1|nest), 
+                             data = telosfull,
+                             REML = T)
+
+anova(blmer_telo.reported, 
+      blmer_telo.reported.drop1)
+
+
+```
+
+
+
+Models w/ single predictor
+```{r}
+blmer_telo.trt <- blmer(log(telomere.length) ~ 
+                             treatment + 
+                              (1|nest), 
+                             data = telosfull,
+                             REML = T)
+
+blmer_telo.sex <- blmer(log(telomere.length) ~ 
+                             sex + 
+                              (1|nest), 
+                             data = telosfull,
+                             REML = T)
+
+blmer_telo.brdsz <- blmer(log(telomere.length) ~ 
+                             brood.size + 
+                              (1|nest), 
+                             data = telosfull,
+                             REML = T)
+
+blmer_telo.cond <- blmer(log(telomere.length) ~ 
+                             condition + 
+                             (1|nest), 
+                             data = telosfull,
+                             REML = T)
+
+```
+
+
+Condition ~ brood size
+```{r}
+blmer_cond.brd <- blmer(condition ~ 
+                             brood.size + 
+                             (1|nest), 
+                             data = telosfull,
+                             REML = T)
+```
+
+
+
+Figure 1. Effect of noise exposure on nestlings' (a) body size, (b) body condition, (c) baseline corticosterone level and (d) telomere length. Filled circles represent disturbed nestlings and open circles represent controls (means ± s.e. from LMMs including nest identity as a random factor). A significant effect of sound treatment is symbolized: **p < 0.010. Numbers below bars indicate sample size (nestlings(broods)).
+
+Table 1.Effect of noise exposure on nestlings' (a) body size, (b) body condition, (c) baseline corticosterone level (log-transformed) and (d) telomere length (log-transformed). Fitted models include sound treatment, sex, brood size and body condition (for (c,d) only), with nest as a random factor. All two-ways interactions were non-significant (p > 0.221) and were removed from the models. Parameter estimates ± s.e. are reported and significant variables are shown in italic.
+
+Discussion
+Only a few studies have investigated the effects of noise pollution on nestlings directly (e.g. [13,17,18]). Overall, they report that noise exposure has subtle effects on physiology and behaviour of nestlings (stress physiology [13]; begging calls [17,18]) without obvious effects on growth, condition or fledging success. Strengthening these results, we found a strong and significant effect of noise exposure on nestling telomere length, but no effect on body size, body condition and fledging success. Recent studies have shown that early-life telomere length can be a reliable predictor of future life expectancy and fitness [2–4]. Reduced telomere length of disturbed nestlings may therefore suggest a detrimental effect of noisy environments on developing sparrows that may carry over later in life (i.e. reduced fitness). Future investigations should usefully assess these potential fitness consequences of reduced telomere length in nestlings.
+
+The proximate causes of the effect of noise on telomere length remain to be determined. Genetic (e.g. inheritance of short telomeres by parents of poor quality), parental (e.g. reduced parental investment) and/or environmental (e.g. noise-induced stress) factors could all be involved [2,4]. The similar occupancy rates (disturbed: 52.4%, control: 54.4%) and high availability of unoccupied control nest boxes (21 nest boxes) suggest that low-quality individuals were not excluded from undisturbed nest boxes by high-quality sparrows [15]. Moreover, there were no differences in clutch size or body size and condition of parents—proxies for individual quality—between sound treatments (see the electronic supplementary material). Overall, parent quality is thus unlikely to have differed across the two sound treatments. Shorter telomeres are also unlikely to result from altered parental behaviour and nutritional restriction because of similar growth and fledging success between disturbed and control nestlings [14]. Accelerated telomere attrition of disturbed nestlings could result from oxidative stress, via noise-induced physiological stress (e.g. elevated stress hormones [4]). Indeed, recent studies have suggested that exposure to stress can accelerate telomere loss [4,10,19,20]. Here, we did not detect any effect of noise exposure on baseline corticosterone levels, suggesting that reduced telomere length did not result from an increased secretion of stress hormones. Importantly, we measured immediate corticosterone levels (when the chicks were 9-days old). It is plausible that an integrative measure of corticosterone levels (for instance, in the feathers) may provide a more accurate assessment of the stress levels experienced by the chicks throughout their development [21]. In addition, other factors could have accounted for the difference in telomere length between experimental chicks and controls. For instance, noise exposure may have increased the activity level of nestlings, or disrupted their normal sleep–wake cycle. Overall, these modifications may have increased oxidative stress and DNA damage, potentially explaining the results we found [4,20]. Future mechanistic studies should more deeply investigate the proximate mechanisms that mediate the effect of noise on telomere length in nestlings. Since early exposure to corticosterone and oxidative stress can affect telomere dynamics [10,20], specific attention should be paid to oxidative stress and integrative measures of corticosterone levels.
+
+Our experiment demonstrates, for the first time, that anthropogenic noise can affect nestlings' telomere length without any obvious morphological effects. This finding raises fascinating questions regarding the impact of anthropogenic noise on life-history trajectories in wild populations. Furthermore, our results highlight the importance of investigating the impact of human-induced changes on cryptic aspects of phenotypic development to fully understand the influence of anthropogenic environments on populations.
+
+
+
+## Supplementary Analysis-parental effect
+
+To better test whether parent quality could have differed across the two sound treatments, we performed supplementary analyses using body size and condition of parents as proxies for individual quality.
+
+(a)	Parent body size and condition
+	13 parents (out of the 16 studied nests) were captured at their nest-box during the chick-rearing period. Captured adults were measured (wing, tarsus, and bill length), weighed and released at their nest. As for nestlings, a body size index was calculated using the first factor from a principal component analysis on the three body size measurements. The first factor explained 50.8 % of the size variation. Body condition was then expressed as the residual mass from a linear regression relating body mass to body size (r² = 0.58, n = 13, p = 0.0014).
+
+(b)	Statistical analysis
+	To test whether body size and body condition of parents differed across the two sound treatments, we used two-way ANOVAs with “sound treatment” (disturbed vs. control), “sex” (male vs. female) and interaction as independent factors.
+
+(a)	Results
+	Parent’s body size and condition did not differ between sound treatments (ANOVA: body size: F1,11 = 0.31, p = 0.591; body condition: F1,11 = 1.22, p = 0.293). Moreover, there were no significant effects of sex or the “sound treatment × sex” interaction (all p > 0.127). We obtained the same results when analyses were done using the body size measurements or body mass (all p > 0.577).
+	
+	but sign of the effect?
+	absence of evidence
